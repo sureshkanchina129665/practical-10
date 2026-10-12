@@ -1,0 +1,82 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+struct Edge {
+    int u, v, weight;
+};
+
+bool compare(Edge a, Edge b) {
+    return a.weight < b.weight;
+}
+
+int findParent(vector<int>& parent, int node) {
+    if (parent[node] == node)
+        return node;
+    return parent[node] = findParent(parent, parent[node]);
+}
+
+void unionSet(vector<int>& parent, vector<int>& rank, int u, int v) {
+    int pu = findParent(parent, u);
+    int pv = findParent(parent, v);
+
+    if (rank[pu] < rank[pv])
+        parent[pu] = pv;
+    else if (rank[pu] > rank[pv])
+        parent[pv] = pu;
+    else {
+        parent[pv] = pu;
+        rank[pu]++;
+    }
+}
+
+int main() {
+    int n, m;
+    cout << "Enter number of vertices and edges: ";
+    cin >> n >> m;
+
+    vector<Edge> edges(m);
+
+    cout << "Enter edges (source destination weight):\n";
+    for (int i = 0; i < m; i++) {
+        cin >> edges[i].u >> edges[i].v >> edges[i].weight;
+    }
+
+    sort(edges.begin(), edges.end(), compare);
+
+    vector<int> parent(n + 1);
+    vector<int> rank(n + 1, 0);
+
+    for (int i = 1; i <= n; i++)
+        parent[i] = i;
+
+    int totalWeight = 0;
+    int count = 0;
+
+    cout << "\nEdges in Minimum Spanning Tree:\n";
+
+    for (Edge e : edges) {
+        int pu = findParent(parent, e.u);
+        int pv = findParent(parent, e.v);
+
+        if (pu != pv) {
+            cout << e.u << " - " << e.v
+                 << " : " << e.weight << "\n";
+
+            unionSet(parent, rank, e.u, e.v);
+            totalWeight += e.weight;
+            count++;
+
+            if (count == n - 1)
+                break;
+        }
+    }
+
+    if (count != n - 1)
+        cout << "Minimum Spanning Tree does not exist.\n";
+    else
+        cout << "Total weight of MST: " << totalWeight << "\n";
+
+    return 0;
+}
